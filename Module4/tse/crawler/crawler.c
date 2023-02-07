@@ -16,6 +16,8 @@
 #include "queue.h"
 #include "hash.h"
 
+#define NUM_BUCKETS 1000
+
 bool isInternalURL(const char *url, const char *base) {
 return (strstr(url, base) != NULL);
 }
@@ -44,12 +46,11 @@ exit(EXIT_FAILURE);
 
 // 4. Initialize the queue and hash table
 queue_t *q = qopen();
-hashtable_t *hash = hopen(1024);
-if (q == NULL || hash == NULL) {
+hashtable_t *visited_hash = hopen(NUM_BUCKETS);
+
+if (q == NULL || visited_hash == NULL) {
 printf("Error: Failed to initialize queue/hash table\n");
 webpage_delete(page);
-qclose(q);
-hclose(hash);
 exit(EXIT_FAILURE);
 }
 
@@ -57,12 +58,10 @@ exit(EXIT_FAILURE);
 int position = 0;
 char *url;
 while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-if (isInternalURL(url, "thayer.github.io/engs50/")) {
-if (!hsearch(hash, url, strlen(url))) {
+if (isInternalURL(url, "thayer.github.io/engs50/") && hsearch(visited_hash, url, strlen(url)) == NULL) {
 qput(q, url);
-hput(hash, url, strlen(url), NULL, 0);
+hput(visited_hash, url, strlen(url));
 printf("Internal URL: %s\n", url);
-}
 } else {
 printf("External URL: %s\n", url);
 free(url);
@@ -73,9 +72,9 @@ free(url);
 printf("Queue:\n");
 qapply(q, (void (*)(void *))&printf);
 qclose(q);
-hclose(hash);
 
-// 7. De-allocate the webpage and terminate with EXIT_SUCCESS.
+// 7. De-allocate the hash table and webpage, and terminate with EXIT_SUCCESS.
+hclose(visited_hash);
 webpage_delete(page);
 exit(EXIT_SUCCESS);
 return 0;
