@@ -16,8 +16,6 @@
 #include "queue.h"
 #include "hash.h"
 
-#define NUM_BUCKETS 1000
-
 bool isInternalURL(const char *url, const char *base) {
 return (strstr(url, base) != NULL);
 }
@@ -30,52 +28,89 @@ printf("Error: Failed to create webpage\n");
 exit(EXIT_FAILURE);
 }
 
-// 2. Fetch the webpage html to your local computer.
-if (!webpage_fetch(page)) {
-printf("Error: Failed to fetch HTML\n");
-webpage_delete(page);
+// 2. Fetch the webpage html to page->html
+if (webpage_fetch(page) != 0) {
+printf("Error: Failed to fetch webpage\n");
 exit(EXIT_FAILURE);
 }
 
-// 3. Check that the fetch succeeded and if not exit with EXIT_FAILURE.
-if (webpage_getHTML(page) == NULL) {
-printf("Error: Failed to get HTML\n");
-webpage_delete(page);
-exit(EXIT_FAILURE);
-}
-
-// 4. Initialize the queue and hash table
+// 3. Create an empty queue
 queue_t *q = qopen();
-hashtable_t *visited_hash = hopen(NUM_BUCKETS);
-
-if (q == NULL || visited_hash == NULL) {
-printf("Error: Failed to initialize queue/hash table\n");
-webpage_delete(page);
+if (q == NULL) {
+printf("Error: Failed to create queue\n");
 exit(EXIT_FAILURE);
 }
 
-// 5. Scan the fetched html, insert internal URL's into the queue, and print all the URL's it contains, one per line, with an indicator to say it is internal (i.e. contained in the engs50 web site) or external.
-int position = 0;
-char *url;
-while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-if (isInternalURL(url, "thayer.github.io/engs50/") && hsearch(visited_hash, url, strlen(url)) == NULL) {
-qput(q, url);
-hput(visited_hash, url, strlen(url));
-printf("Internal URL: %s\n", url);
-} else {
-printf("External URL: %s\n", url);
-free(url);
-}
+// 4. Create an empty hash table
+hashtable_t *ht = hopen(1024);
+if (ht == NULL) {
+printf("Error: Failed to create hash table\n");
+exit(EXIT_FAILURE);
 }
 
-// 6. Print the queue and close it
-printf("Queue:\n");
-qapply(q, (void (*)(void *))&printf);
+// 5. Put the page into the queue and add the URL to the hash table
+if (qput(q, page) != 0) {
+printf("Error: Failed to put page into queue\n");
+exit(EXIT_FAILURE);
+}
+
+char *url = webpage_getURL(page);
+int len = strlen(url);
+if (hput(ht, page, url, len) != 0) {
+printf("Error: Failed to put URL into hash table\n");
+exit(EXIT_FAILURE);
+}
+
+// 6. Iteratively process elements from the queue
+while (qsize(q) > 0) {
+// 7. Get the first page from the queue
+webpage_t *currPage = qget(q);
+if (currPage == NULL) {
+printf("Error: Failed to get page from queue\n");
+exit(EXIT_FAILURE);
+}
+// 8. Get the internal URLs from the current page's html
+int pos = 0;
+char *result;
+while ((result = webpage_getNextURL(currPage, &pos)) != NULL) {
+if (isInternalURL(result, "https://thayer.github.io/engs50/")) {
+// 9. Check if the URL is already in the hash table
+if (hsearch(ht, &webpage_urlcmp, result, strlen(result)) == NULL) {
+// 10. If the URL is not in the hash table, create a new webpage
+// with the URL and the depth + 1
+webpage_t *newPage = webpage_new(result, webpage_getDepth(currPage) + 1, NULL);
+if (newPage == NULL) {
+printf("Error: Failed to create new webpage\n");
+exit(EXIT_FAILURE);
+}
+// 11. Fetch the new page's html to newPage->html
+if (webpage_fetch(newPage) != 0) {
+printf("Error: Failed to fetch new page\n");
+exit(EXIT_FAILURE);
+}
+
+// 12. Put the new page into the queue
+if (qput(q, newPage) != 0) {
+  printf("Error: Failed to put new page into queue\n");
+  exit(EXIT_FAILURE);
+}
+
+// 13. Add the URL of the new page to the hash table
+char *newURL = webpage_getURL(newPage);
+int len = strlen(newURL);
+if (hput(ht, newPage, newURL, len) != 0) {
+  printf("Error: Failed to put new URL into hash table\n");
+  exit(EXIT_FAILURE);
+}
+}
+}
+}
+// 14. Free the memory for the current page
+webpage_delete(currPage);
+}
+
+// 15. Close the queue and free its memory, close hash and free, and exit with success
 qclose(q);
-
-// 7. De-allocate the hash table and webpage, and terminate with EXIT_SUCCESS.
-hclose(visited_hash);
-webpage_delete(page);
-exit(EXIT_SUCCESS);
-return 0;
+hclose(ht);
+return EXIT_SUCCESS;
 }
