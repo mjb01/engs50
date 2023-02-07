@@ -23,7 +23,7 @@ bool isInternalURL(const char *url, const char *base)
 
 int main()
 {
-       // 1. Create a single new webpage at depth 0, with the seed URL: https://thayer.github.io/engs50/
+// 1. Create a single new webpage at depth 0, with the seed URL: https://thayer.github.io/engs50/
 webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
   if (page == NULL)
   {
@@ -31,14 +31,14 @@ webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
     exit(EXIT_FAILURE);
   }
 
-       // 2. Fetch the webpage html to page->html
+// 2. Fetch the webpage html to page->html
   if (webpage_fetch(page) != 0)
   {
     printf("Error: Failed to fetch webpage\n");
     exit(EXIT_FAILURE);
   }
 
-  // 3. Create an empty queue
+// 3. Create an empty queue
   queue_t *q = qopen();
   if (q == NULL)
   {
@@ -46,7 +46,7 @@ webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
     exit(EXIT_FAILURE);
   }
 
-  // 4. Create an empty hash table
+// 4. Create an empty hash table
   hashtable_t *ht = hopen(1024);
   if (ht == NULL)
   {
@@ -69,7 +69,7 @@ webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
     exit(EXIT_FAILURE);
   }
 
-       // 6. Iteratively process elements from the queue
+  // 6. Iteratively process elements from the queue
   while (qsize(q) > 0)
   {
   // 7. Get the first page from the queue
@@ -79,18 +79,18 @@ webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
       printf("Error: Failed to get page from queue\n");
       exit(EXIT_FAILURE);
     }
-            // 8. Get the internal URLs from the current page's html
+  // 8. Get the internal URLs from the current page's html
         int pos = 0;
     char *result;
     while ((result = webpage_getNextURL(currPage, &pos)) != NULL)
     {
       if (isInternalURL(result, "https://thayer.github.io/engs50/"))
       {
-        // 9. Check if the URL is already in the hash table
+  // 9. Check if the URL is already in the hash table
         if (hsearch(ht, &webpage_urlcmp, result, strlen(result)) == NULL)
         {
-          // 10. If the URL is not in the hash table, create a new webpage
-          // with the URL and the depth + 1
+  // 10. If the URL is not in the hash table, create a new webpage with the URL and the depth + 1
+          
           webpage_t *newPage = webpage_new(result, webpage_getDepth(currPage) + 1, NULL);
           if (newPage == NULL)
           {
