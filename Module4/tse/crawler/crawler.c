@@ -14,6 +14,7 @@
 #include <string.h>
 #include "webpage.h"
 #include "queue.h"
+#include "hash.h"
 
 bool isInternalURL(const char *url, const char *base) {
 return (strstr(url, base) != NULL);
@@ -41,11 +42,14 @@ webpage_delete(page);
 exit(EXIT_FAILURE);
 }
 
-// 4. Initialize the queue
+// 4. Initialize the queue and hash table
 queue_t *q = qopen();
-if (q == NULL) {
-printf("Error: Failed to initialize queue\n");
+hashtable_t *hash = hopen(1024);
+if (q == NULL || hash == NULL) {
+printf("Error: Failed to initialize queue/hash table\n");
 webpage_delete(page);
+qclose(q);
+hclose(hash);
 exit(EXIT_FAILURE);
 }
 
@@ -54,8 +58,11 @@ int position = 0;
 char *url;
 while ((position = webpage_getNextURL(page, position, &url)) > 0) {
 if (isInternalURL(url, "thayer.github.io/engs50/")) {
+if (!hsearch(hash, url, strlen(url))) {
 qput(q, url);
+hput(hash, url, strlen(url), NULL, 0);
 printf("Internal URL: %s\n", url);
+}
 } else {
 printf("External URL: %s\n", url);
 free(url);
@@ -66,6 +73,7 @@ free(url);
 printf("Queue:\n");
 qapply(q, (void (*)(void *))&printf);
 qclose(q);
+hclose(hash);
 
 // 7. De-allocate the webpage and terminate with EXIT_SUCCESS.
 webpage_delete(page);
