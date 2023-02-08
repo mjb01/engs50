@@ -36,7 +36,7 @@ int main() {
   hashtable_t *h = hopen(1024);
 
   // 4. Repeat until either the queue is empty or the number of items in the queue exceeds the maximum number of items
-  while (!qempty(q)) {
+  while (q != NULL) {
     // 5. Take the next item from the queue and get the URL of the next page to be crawled
     webpage_t *curr = qget(q);
     char *url = webpage_getURL(curr);
