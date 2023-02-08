@@ -42,19 +42,15 @@ int main() {
     char *url = webpage_getURL(curr);
 
     // 6. If the URL is not in the hash table, 
-    ENTRY e, *ep;
-    e.key = url;
-    ep = hsearch(e, FIND);
-    if (ep == NULL) {
+    int res;
+    entry_t *entry = hsearch(h, url, &res);
+    if (res == 0) {
       // 6a. The associated webpage is added to the queue and 
       // 6b. The URL is also added to the hash table
       qput(q, curr);
-
-      e.key = strdup(url);
-      e.data = curr;
-      ep = hsearch(e, ENTER);
-      if (ep == NULL) {
-        fprintf(stderr, "Error: hsearch failed\n");
+      hput(h, url, curr, &res);
+      if (res != 0) {
+        fprintf(stderr, "Error: hput failed\n");
         continue;
       }
 
@@ -77,8 +73,9 @@ int main() {
           }
           qput(q, internal_page);
         }
-    free(internal_url);
-  }
+        free(internal_url);
+      }
+
 
   // 6f. Print the URL of the current page
   printf("Crawled: %s\n", url);
