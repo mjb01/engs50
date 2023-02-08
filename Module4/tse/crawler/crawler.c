@@ -59,7 +59,7 @@ int main() {
       // 6d. Extract the internal URLs from the page
       int pos = 0;
       char *internal_url;
-      while ((pos = webpage_getNextURL(curr, pos, &internal_url)) != NULL) {
+      while ((pos = webpage_getNextURL(curr, pos, &internal_url)) > 0) {
         // 6e. If the URL is internal, create a new webpage for it and add it to the queue
         if (isInternalURL(internal_url, "https://thayer.github.io/engs50/")) {
           webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, NULL);
