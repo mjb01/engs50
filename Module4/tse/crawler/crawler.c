@@ -43,11 +43,12 @@ int main() {
 
     // 6. If the URL is not in the hash table, 
     int res;
-    if (!hsearch(h, url, &res)) {
+    //some issue with hsearch
+    if (!hsearch(h, curr, url, &res)) {
       // 6a. The associated webpage is added to the queue and 
       // 6b. The URL is also added to the hash table
       qput(q, curr);
-      hput(h, url, curr);
+      hput(h, curr, url, strlen(url));
 
       // 6c. Download the page contents
       if (!webpage_fetch(curr)) {
@@ -58,7 +59,7 @@ int main() {
       // 6d. Extract the internal URLs from the page
       int pos = 0;
       char *internal_url;
-      while ((internal_url = webpage_getNextURL(curr, &pos)) != NULL) {
+      while ((internal_url = webpage_getNextURL(curr, pos, &internal_url)) != NULL) {
         // 6e. If the URL is internal, create a new webpage for it and add it to the queue
         if (isInternalURL(internal_url, "https://thayer.github.io/engs50/")) {
           webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, curr);
