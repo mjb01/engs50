@@ -42,7 +42,7 @@ int main() {
     char *url = webpage_getURL(curr);
 
     // 6. If the URL is not in the hash table, 
-    int res;
+    uint32_t int res;
     //some issue with hsearch
     if (!hsearch(h, curr, url, &res)) {
       // 6a. The associated webpage is added to the queue and 
