@@ -81,6 +81,9 @@ free(url);
 int depth = 1;
 while (q != NULL) {
 char *url = qget(q);
+if (url == NULL) {
+break;
+}
 webpage_t *page = webpage_new(url, depth, NULL);
 if (webpage_fetch(page)) {
 position = 0;
@@ -102,7 +105,6 @@ free(url);
 // 9. Clean up
 hclose(visited);
 qclose(q);
-webpage_delete(page);
 
 return EXIT_SUCCESS;
 }
