@@ -74,7 +74,7 @@ printf("Internal URL: %s\n", url);
 hput(visited, (void *) 1, url, sizeof(int));
 printf("External URL: %s\n", url);
 }
-// free(url);
+free(url);
 }
 
 // // 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
@@ -102,10 +102,12 @@ printf("External URL: %s\n", url);
 // free(url);
 // }
 
-// 9. Clean up
-webpage_delete(page);
-hclose(visited);
+printf("Queue:\n");
+qapply(q, (void (*)(void *))&printf);
 qclose(q);
+// 9. Clean up
+hclose(visited);
+webpage_delete(page);
 return EXIT_SUCCESS;
 }
 // }
