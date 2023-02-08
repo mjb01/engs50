@@ -112,4 +112,4 @@ hclose(visited);
 webpage_delete(page);
 return EXIT_SUCCESS;
 }
-// }
+}
