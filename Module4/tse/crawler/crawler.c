@@ -16,14 +16,6 @@
 #include "queue.h"
 #include "hash.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "webpage.h"
-#include "queue.h"
-#include "hash.h"
-#include <search.h>
-
 bool isInternalURL(const char *url, const char *base) {
 return (strstr(url, base) != NULL);
 }
