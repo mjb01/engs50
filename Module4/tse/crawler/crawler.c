@@ -74,7 +74,7 @@ printf("Internal URL: %s\n", url);
 hput(visited, (void *) 1, url, sizeof(int));
 printf("External URL: %s\n", url);
 }
-free(url);
+// free(url);
 }
 
 // // 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
