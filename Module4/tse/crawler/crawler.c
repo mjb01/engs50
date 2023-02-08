@@ -102,10 +102,12 @@ free(url);
 // free(url);
 // }
 
+// 9. Print the queue and close it
 printf("Queue:\n");
 qapply(q, (void (*)(void *))&printf);
 qclose(q);
-// 9. Clean up
+
+// 10. Clean up
 hclose(visited);
 webpage_delete(page);
 return EXIT_SUCCESS;
