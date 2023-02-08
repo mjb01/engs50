@@ -66,11 +66,11 @@ int main() {
   int position = 0;
   char *url;
   while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-    if (isInternalURL(url, "thayer.github.io/engs50/") && hget(visited, url, NULL, NULL) == 0) {
+    if (isInternalURL(url, "thayer.github.io/engs50/") && qget(visited, url, NULL, NULL) == 0) {
       qput(q, url);
       hput(visited, url, (void *) 1, sizeof(int));
       printf("Internal URL: %s\n", url);
-    } else if (hget(visited, url, NULL, NULL) == 0) {
+    } else if (qget(visited, url, NULL, NULL) == 0) {
       hput(visited, url, (void *) 1, sizeof(int));
       printf("External URL: %s\n", url);
 }
@@ -79,7 +79,7 @@ free(url);
 
 // 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
 int depth = 1;
-while (!qempty(q)) {
+while (q != NULL) {
 char *url = qget(q);
 webpage_t *page = webpage_new(url, depth, NULL);
 if (webpage_fetch(page)) {
@@ -89,7 +89,7 @@ if (isInternalURL(url, "thayer.github.io/engs50/") && hget(visited, url, NULL, N
 qput(q, url);
 hput(visited, url, (void *) 1, sizeof(int));
 printf("Internal URL: %s\n", url);
-} else if (hget(visited, url, NULL, NULL) == 0) {
+} else if (qget(visited, url, NULL, NULL) == 0) {
 hput(visited, url, (void *) 1, sizeof(int));
 printf("External URL: %s\n", url);
 }
