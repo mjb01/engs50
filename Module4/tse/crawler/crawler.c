@@ -93,8 +93,6 @@ printf("Internal URL: %s\n", url);
 hput(visited, (void *) 1, url, sizeof(int));
 printf("External URL: %s\n", url);
 }
-free(url);
-}
 }
 depth++;
 webpage_delete(page);
@@ -107,4 +105,5 @@ qclose(q);
 webpage_delete(page);
 
 return EXIT_SUCCESS;
+}
 }
