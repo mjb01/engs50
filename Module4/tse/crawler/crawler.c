@@ -77,35 +77,35 @@ printf("External URL: %s\n", url);
 free(url);
 }
 
-// 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
-int depth = 1;
-while (q != NULL) {
-char *url = qget(q);
-if (url == NULL) {
-break;
-}
-webpage_t *page = webpage_new(url, depth, NULL);
-if (webpage_fetch(page)) {
-position = 0;
-while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-if (isInternalURL(url, "thayer.github.io/engs50/") && hsearch(visited, NULL, url, 0) == NULL) {
-qput(q, url);
-hput(visited, (void *) 1, url, sizeof(int));
-printf("Internal URL: %s\n", url);
-} else if (hsearch(visited, NULL, url, 0) == NULL) {
-hput(visited, (void *) 1, url, sizeof(int));
-printf("External URL: %s\n", url);
-}
-}
-depth++;
-webpage_delete(page);
-free(url);
-}
+// // 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
+// int depth = 1;
+// while (q != NULL) {
+// char *url = qget(q);
+// if (url == NULL) {
+// break;
+// }
+// webpage_t *page = webpage_new(url, depth, NULL);
+// if (webpage_fetch(page)) {
+// position = 0;
+// while ((position = webpage_getNextURL(page, position, &url)) > 0) {
+// if (isInternalURL(url, "thayer.github.io/engs50/") && hsearch(visited, NULL, url, 0) == NULL) {
+// qput(q, url);
+// hput(visited, (void *) 1, url, sizeof(int));
+// printf("Internal URL: %s\n", url);
+// } else if (hsearch(visited, NULL, url, 0) == NULL) {
+// hput(visited, (void *) 1, url, sizeof(int));
+// printf("External URL: %s\n", url);
+// }
+// }
+// depth++;
+
+// free(url);
+// }
 
 // 9. Clean up
+webpage_delete(page);
 hclose(visited);
 qclose(q);
-
 return EXIT_SUCCESS;
 }
-}
+// }
