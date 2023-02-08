@@ -63,16 +63,16 @@ int main() {
   hput(visited, "https://thayer.github.io/engs50/", (void *) 1, sizeof(int));
 
   // 7. Scan the fetched html, insert internal URL's into the queue, and print all the URL's it contains, one per line, with an indicator to say it is internal (i.e. contained in the engs50 web site) or external.
-  int position = 0;
-  char *url;
-  while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-    if (isInternalURL(url, "thayer.github.io/engs50/") && qget(visited, url, NULL, NULL) == 0) {
-      qput(q, url);
-      hput(visited, url, (void *) 1, sizeof(int));
-      printf("Internal URL: %s\n", url);
-    } else if (qget(visited, url, NULL, NULL) == 0) {
-      hput(visited, url, (void *) 1, sizeof(int));
-      printf("External URL: %s\n", url);
+ int position = 0;
+char *url;
+while ((position = webpage_getNextURL(page, position, &url)) > 0) {
+if (isInternalURL(url, "thayer.github.io/engs50/") && hsearch(visited, NULL, url, 0) == NULL) {
+qput(q, url);
+hput(visited, (void *) 1, url, sizeof(int));
+printf("Internal URL: %s\n", url);
+} else if (hsearch(visited, NULL, url, 0) == NULL) {
+hput(visited, (void *) 1, url, sizeof(int));
+printf("External URL: %s\n");
 }
 free(url);
 }
@@ -85,7 +85,7 @@ webpage_t *page = webpage_new(url, depth, NULL);
 if (webpage_fetch(page)) {
 position = 0;
 while ((position = webpage_getNextURL(page, position, &url)) > 0) {
-if (isInternalURL(url, "thayer.github.io/engs50/") && hget(visited, url, NULL, NULL) == 0) {
+if (isInternalURL(url, "thayer.github.io/engs50/") && qget(visited, url, NULL, NULL) == 0) {
 qput(q, url);
 hput(visited, url, (void *) 1, sizeof(int));
 printf("Internal URL: %s\n", url);
