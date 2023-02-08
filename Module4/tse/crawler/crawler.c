@@ -62,7 +62,7 @@ int main() {
       while ((internal_url = webpage_getNextURL(curr, pos, &internal_url)) != NULL) {
         // 6e. If the URL is internal, create a new webpage for it and add it to the queue
         if (isInternalURL(internal_url, "https://thayer.github.io/engs50/")) {
-          webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, webpage_getDepth(curr));
+          webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, NULL);
           if (internal_page == NULL) {
             fprintf(stderr, "Error: webpage_new returned NULL\n");
             continue;
