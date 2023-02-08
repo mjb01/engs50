@@ -45,26 +45,24 @@ int main() {
     int res;
     entry_t *entry = hsearch(h, url, &res);
     if (res == 0) {
-      // 6a. The associated webpage is added to the queue and 
-      // 6b. The URL is also added to the hash table
-      qput(q, curr);
+      // 6a. The associated webpage is added to the hash table 
       hput(h, url, curr, &res);
       if (res != 0) {
         fprintf(stderr, "Error: hput failed\n");
         continue;
       }
 
-      // 6c. Download the page contents
+      // 6b. Download the page contents
       if (!webpage_fetch(curr)) {
         fprintf(stderr, "Error: webpage_fetch failed\n");
         continue;
       }
 
-      // 6d. Extract the internal URLs from the page
+      // 6c. Extract the internal URLs from the page
       int pos = 0;
       char *internal_url;
       while ((internal_url = webpage_getNextURL(curr, &pos)) != NULL) {
-        // 6e. If the URL is internal, create a new webpage for it and add it to the queue
+        // 6d. If the URL is internal, create a new webpage for it and add it to the queue
         if (isInternalURL(internal_url, "https://thayer.github.io/engs50/")) {
           webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, curr);
           if (internal_page == NULL) {
@@ -76,10 +74,9 @@ int main() {
         free(internal_url);
       }
 
-
-  // 6f. Print the URL of the current page
-  printf("Crawled: %s\n", url);
-}
+      // 6e. Print the URL of the current page
+      printf("Crawled: %s\n", url);
+    }
 
 // 7. Clean up the memory used by the current page
 webpage_delete(curr);
