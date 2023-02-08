@@ -14,7 +14,7 @@
 #include <string.h>
 #include "webpage.h"
 #include "queue.h"
-#include "hash.h"
+#include "hashtable.h"
 
 bool isInternalURL(const char *url, const char *base) {
   return (strstr(url, base) != NULL);
@@ -24,66 +24,87 @@ int main() {
   // 1. Create a single new webpage at depth 0, with the seed URL: https://thayer.github.io/engs50/
   webpage_t *page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
   if (page == NULL) {
-    fprintf(stderr, "Error: webpage_new returned NULL\n");
-    return 1;
+    printf("Error: Failed to create webpage\n");
+    exit(EXIT_FAILURE);
   }
 
-  // 2. Create an empty queue and add the webpage to it
+  // 2. Fetch the webpage html to your local computer.
+  if (!webpage_fetch(page)) {
+    printf("Error: Failed to fetch HTML\n");
+    webpage_delete(page);
+    exit(EXIT_FAILURE);
+  }
+
+  // 3. Check that the fetch succeeded and if not exit with EXIT_FAILURE.
+  if (webpage_getHTML(page) == NULL) {
+    printf("Error: Failed to get HTML\n");
+    webpage_delete(page);
+    exit(EXIT_FAILURE);
+  }
+
+  // 4. Initialize the queue
   queue_t *q = qopen();
-  qput(q, page);
+  if (q == NULL) {
+    printf("Error: Failed to initialize queue\n");
+    webpage_delete(page);
+    exit(EXIT_FAILURE);
+  }
 
-  // 3. Create a hash table of visited URLs
-  hashtable_t *h = hopen(1024);
+  // 5. Initialize the hash table
+  hashtable_t *visited = hopen(1024);
+  if (visited == NULL) {
+    printf("Error: Failed to initialize hash table\n");
+    qclose(q);
+    webpage_delete(page);
+    exit(EXIT_FAILURE);
+  }
 
-  // 4. Repeat until either the queue is empty or the number of items in the queue exceeds the maximum number of items
-  while (q != NULL) {
-    // 5. Take the next item from the queue and get the URL of the next page to be crawled
-    webpage_t *curr = qget(q);
-    char *url = webpage_getURL(curr);
+  // 6. Add the seed URL to the hash table
+  hput(visited, "https://thayer.github.io/engs50/", (void *) 1, sizeof(int));
 
-    // 6. If the URL is not in the hash table, 
-    uint32_t int res;
-    //some issue with hsearch
-    if (!hsearch(h, curr, url, &res)) {
-      // 6a. The associated webpage is added to the queue and 
-      // 6b. The URL is also added to the hash table
-      qput(q, curr);
-      hput(h, curr, url, strlen(url));
-
-      // 6c. Download the page contents
-      if (!webpage_fetch(curr)) {
-        fprintf(stderr, "Error: webpage_fetch failed\n");
-        continue;
-      }
-
-      // 6d. Extract the internal URLs from the page
-      int pos = 0;
-      char *internal_url;
-      while ((pos = webpage_getNextURL(curr, pos, &internal_url)) > 0) {
-        // 6e. If the URL is internal, create a new webpage for it and add it to the queue
-        if (isInternalURL(internal_url, "https://thayer.github.io/engs50/")) {
-          webpage_t *internal_page = webpage_new(internal_url, webpage_getDepth(curr) + 1, NULL);
-          if (internal_page == NULL) {
-            fprintf(stderr, "Error: webpage_new returned NULL\n");
-            continue;
-          }
-          qput(q, internal_page);
-        }
-        free(internal_url);
-      }
-
-
-  // 6f. Print the URL of the current page
-  printf("Crawled: %s\n", url);
+  // 7. Scan the fetched html, insert internal URL's into the queue, and print all the URL's it contains, one per line, with an indicator to say it is internal (i.e. contained in the engs50 web site) or external.
+  int position = 0;
+  char *url;
+  while ((position = webpage_getNextURL(page, position, &url)) > 0) {
+    if (isInternalURL(url, "thayer.github.io/engs50/") && hget(visited, url, NULL, NULL) == 0) {
+      qput(q, url);
+      hput(visited, url, (void *) 1, sizeof(int));
+      printf("Internal URL: %s\n", url);
+    } else if (hget(visited, url, NULL, NULL) == 0) {
+      hput(visited, url, (void *) 1, sizeof(int));
+      printf("External URL: %s\n", url);
+}
+free(url);
 }
 
-// 7. Clean up the memory used by the current page
-webpage_delete(curr);
+// 8. Repeat steps 1-7 for each URL in the queue, but with a depth incremented by one.
+int depth = 1;
+while (!qempty(q)) {
+char *url = qget(q);
+webpage_t *page = webpage_new(url, depth, NULL);
+if (webpage_fetch(page)) {
+position = 0;
+while ((position = webpage_getNextURL(page, position, &url)) > 0) {
+if (isInternalURL(url, "thayer.github.io/engs50/") && hget(visited, url, NULL, NULL) == 0) {
+qput(q, url);
+hput(visited, url, (void *) 1, sizeof(int));
+printf("Internal URL: %s\n", url);
+} else if (hget(visited, url, NULL, NULL) == 0) {
+hput(visited, url, (void *) 1, sizeof(int));
+printf("External URL: %s\n", url);
+}
+free(url);
+}
+}
+depth++;
+webpage_delete(page);
+free(url);
 }
 
-// 8. Clean up the memory used by the queue and hash table
+// 9. Clean up
+hclose(visited);
 qclose(q);
-hclose(h);
+webpage_delete(page);
 
-return 0;
+return EXIT_SUCCESS;
 }
